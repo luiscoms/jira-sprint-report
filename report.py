@@ -1,17 +1,29 @@
 #!/usr/bin/env python
 
-import re
 from pprint import pprint
+import re
+import yaml
 
 import requests
 from getpass import getpass
 
-AUTHOR='ricardo_gemignani'
+try:
+    config = yaml.load(open('config.yml'))
+except:
+    config = {}
 
-BASE_URL = "https://gruporbs.atlassian.net"
+AUTHOR = 'ricardo_gemignani'
 
-jira_username = input("Jira Username: ")
-jira_password = getpass("Jira Password: ")
+BASE_URL = config.get('jira_url')
+if not BASE_URL:
+    BASE_URL = input("Jira URL: ")
+
+jira_username = config.get('jira_username')
+if not jira_username:
+    jira_username = input("Jira Username: ")
+jira_password = config.get('jira_password')
+if not jira_password:
+    jira_password = getpass("Jira Password for {}: ".format(jira_username))
 
 auth = requests.auth.HTTPBasicAuth(jira_username, jira_password)
 
@@ -23,8 +35,9 @@ boards = requests.get(BASE_URL +"/rest/agile/1.0/board", auth=auth, headers=head
 board_names = [b['name'] for b in boards]
 board_names.sort()
 
-board_name = None
-while not board_name:
+board_name = config.get('jira_board_name')
+board = None
+while board_name not in board_names:
     print('BOARDS:')
     print(' . '+'\n . '.join(board_names))
     board_name = input("Jira Board Name: ")
@@ -65,4 +78,3 @@ for key, value in remaining_hours.items():
     print('. {} - {} hours'.format(key, value))
 
 print('Total: {}'.format(sum(remaining_hours.values())))
-
