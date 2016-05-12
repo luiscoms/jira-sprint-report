@@ -33,7 +33,6 @@ headers = {
 
 boards = requests.get(BASE_URL +"/rest/agile/1.0/board", auth=auth, headers=headers).json()['values']
 board_names = [b['name'] for b in boards]
-board_names.sort()
 
 board_name = config.get('jira_board_name')
 board = None
@@ -52,18 +51,14 @@ sprint_issues = requests.get(sprint['self']+"/issue?maxResults=1000", auth=auth,
 
 remaining_hours = {}
 
-print('\n')
-
-for issue in sprint_issues:
+for issue in sorted(sprint_issues, key=lambda i: '{}{:030d}'.format(
+            i.get('fields', {}).get('summary')[:3],
+            i.get('fields', {}).get('timetracking', {}).get('remainingEstimateSeconds', 0))):
     _type = re.match('\[([^\]]*)\].*', issue.get('fields', {}).get('summary'))
     remaining_seconds = issue.get('fields', {}).get('timetracking', {}).get('remainingEstimateSeconds', 0)
     _remaining_hours = remaining_seconds/60/60
     if not _type and remaining_seconds:
-        print("\nWARNING: Issue '{} {}' has no type.".format(issue['key'], issue.get('fields', {}).get('summary')))
-        _type = 'NO TYPE'
-        hours = remaining_hours.get(_type, 0)
-        hours += _remaining_hours
-        remaining_hours[_type] = hours
+        print("Issue {} has no type.".format(issue['key']))
     elif _type and remaining_seconds:
         _type = _type.groups()[0]
         _type = _type.upper()
@@ -74,7 +69,7 @@ for issue in sprint_issues:
 
 print('\nTypes:')
 
-for key, value in remaining_hours.items():
+for key, value in sorted(remaining_hours.items(), key=lambda x:x[0]):
     print('. {} - {} hours'.format(key, value))
 
 print('Total: {}'.format(sum(remaining_hours.values())))
