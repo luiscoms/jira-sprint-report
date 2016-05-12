@@ -1,4 +1,5 @@
 jira_url: https://gruporbs.atlassian.net
 jira_username: luis_gomes2
-jira_password: 
+jira_password:
+jira_sprint_name:
 jira_board_name: Nova ZH
