@@ -45,7 +45,30 @@ board = list(filter(lambda x: x['name'] == board_name, boards))[0]
 
 board_sprints = requests.get(board['self']+"/sprint", auth=auth, headers=headers).json()['values']
 
-sprint = list(filter(lambda x: x['state'] == 'active', board_sprints))[0]
+active_sprint = list(filter(lambda x: x['state'] == 'active', board_sprints))
+if active_sprint:
+    active_sprint = active_sprint[0]
+
+future_sprint = list(filter(lambda x: x['state'] == 'future', board_sprints))
+if future_sprint:
+    future_sprint = future_sprint[0]
+
+default_sprint = active_sprint or future_sprint
+
+sprint_names = [s['name'] for s in board_sprints]
+
+sprint_name = ''
+while sprint_name not in sprint_names:
+    print('SPRINTS:')
+    print(' . '+'\n . '.join('{} ({})'.format(s['name'], s['state']) for s in board_sprints))
+    if default_sprint:
+        sprint_name = input("Jira Sprint Name [{}]: ".format(default_sprint['name']))
+        if not sprint_name:
+            sprint_name = default_sprint['name']
+    else:
+        sprint_name = input("Jira Sprint Name: ")
+
+sprint = list(filter(lambda x: x['name'] == sprint_name, board_sprints))[0]
 
 sprint_issues = requests.get(sprint['self']+"/issue?maxResults=1000", auth=auth, headers=headers).json()['issues']
 
@@ -65,7 +88,7 @@ for issue in sorted(sprint_issues, key=lambda i: '{}{:030d}'.format(
         hours = remaining_hours.get(_type, 0)
         hours += _remaining_hours
         remaining_hours[_type] = hours
-        print("{:4.1f} - {}".format(_remaining_hours, issue.get('fields', {}).get('summary')))
+        print("{:5.1f} - {}".format(_remaining_hours, issue.get('fields', {}).get('summary')))
 
 print('\nTypes:')
 
