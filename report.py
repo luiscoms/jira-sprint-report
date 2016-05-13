@@ -57,7 +57,7 @@ default_sprint = active_sprint or future_sprint
 
 sprint_names = [s['name'] for s in board_sprints]
 
-sprint_name = ''
+sprint_name = config.get('jira_sprint_name', '')
 while sprint_name not in sprint_names:
     print('SPRINTS:')
     print(' . '+'\n . '.join('{} ({})'.format(s['name'], s['state']) for s in board_sprints))
