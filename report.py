@@ -73,26 +73,32 @@ sprint = list(filter(lambda x: x['name'] == sprint_name, board_sprints))[0]
 sprint_issues = requests.get(sprint['self']+"/issue?maxResults=1000", auth=auth, headers=headers).json()['issues']
 
 remaining_hours = {}
+spent_hours = {}
 
 for issue in sorted(sprint_issues, key=lambda i: '{}{:030d}'.format(
             i.get('fields', {}).get('summary')[:3],
             i.get('fields', {}).get('timetracking', {}).get('remainingEstimateSeconds', 0))):
     _type = re.match('\[([^\]]*)\].*', issue.get('fields', {}).get('summary'))
+    spent_seconds = issue.get('fields', {}).get('timetracking', {}).get('timeSpentSeconds', 0)
     remaining_seconds = issue.get('fields', {}).get('timetracking', {}).get('remainingEstimateSeconds', 0)
     _remaining_hours = remaining_seconds/60/60
+    _spent_hours = spent_seconds/60/60
     if not _type and remaining_seconds:
         print("Issue {} has no type.".format(issue['key']))
-    elif _type and remaining_seconds:
+    if _type:
         _type = _type.groups()[0]
         _type = _type.upper()
         hours = remaining_hours.get(_type, 0)
         hours += _remaining_hours
         remaining_hours[_type] = hours
-        print("{:5.1f} - {}".format(_remaining_hours, issue.get('fields', {}).get('summary')))
+        hours = spent_hours.get(_type, 0)
+        hours += _spent_hours
+        spent_hours[_type] = hours
+        print("{:5.1f}({:5.1f}) - {} - {}".format(_remaining_hours, _spent_hours, issue['key'], issue.get('fields', {}).get('summary')))
 
 print('\nTypes:')
 
 for key, value in sorted(remaining_hours.items(), key=lambda x:x[0]):
-    print('. {} - {} hours'.format(key, value))
+    print('. {} - {} remaining {} spent'.format(key, value, spent_hours.get(key)))
 
-print('Total: {}'.format(sum(remaining_hours.values())))
+print('Total: {} ({})'.format(sum(remaining_hours.values()), sum(spent_hours.values())))
