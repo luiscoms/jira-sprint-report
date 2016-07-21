@@ -1,0 +1,61 @@
+<div><a href="logout">Logout</a></div>
+<form method="POST">
+    <fieldset>
+        <div>
+            <label>Board:</label>
+            {% for board in boards %}
+                {% if loop.first %}
+                <select name="board_name">
+                    <option>Select one</option>
+                {% endif %}
+                    <option {% if board.name==board_name %} selected="selected"{% endif %} value="{{board.name}}">{{board.name}}</option>
+                {% if loop.last %}
+                </select>
+                {% endif %}
+            {% else %}
+                <input type="text" name="board_name" value="{{board_name}}">
+            {% endfor %}
+        </div>
+        <div>
+            <label>Sprint:</label>
+            {% for sprint in sprints %}
+                {% if loop.first %}
+                <select name="sprint_name">
+                    <option>Select one</option>
+                {% endif %}
+                    <option {% if sprint.name==sprint_name %} selected="selected"{% endif %} value="{{sprint.name}}">{{sprint.name}}</option>
+                {% if loop.last %}
+                </select>
+                {% endif %}
+            {% else %}
+                <input type="text" name="sprint_name" value="{{sprint_name}}">
+            {% endfor %}
+        </div>
+        <div>
+            <input type="submit" name="send_form" value="Enviar">
+        </div>
+    </fieldset>
+</form>
+<table>
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Remaining</th>
+            <th>Spent</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for type in types %}
+        <tr>
+            <td>{{ type.name }}</td>
+            <td>{{ type.remainig }}</td>
+            <td>{{ type.spent }}</td>
+        </tr>
+    {% endfor %}
+        <tr>
+            <th>Total</th>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
